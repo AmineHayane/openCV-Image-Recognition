@@ -7,8 +7,10 @@ import time
 import pickle
 from sklearn.svm import SVC, LinearSVC
 from sklearn.externals import joblib
+import time
+import pygame
 
-######## Fonctions graph + extraction ################
+##################### Fonctions : graph + extraction ############################
 
 def create_graph():
     with gfile.FastGFile('retrained_graph_smartphones.pb', 'rb') as f:
@@ -43,7 +45,11 @@ def extract_features(list_images, label):
 
         return features, labels
     
-##################### WEBCAM  ######################################
+##################### WEBCAM  ###################################################
+
+flux = cv2.VideoCapture(2)
+
+# Import du SVM 
 
 clf = joblib.load('svm.pkl')
 
@@ -54,13 +60,13 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 #Flux web cam
 #flux = cv2.VideoCapture('rtsp://192.168.42.1:554/live')
 
-flux= cv2.VideoCapture(2)
-
 
 #Prise de photo
 _ ,img = flux.read()
 
-j=0
+
+indice = 0
+
 
 while (True):
 
@@ -74,33 +80,51 @@ while (True):
     _ ,img = flux.read()
 
 
-    if key == ord('s') :
+    if key == ord('s'):
 
+        images_test =[]
 
-        _ ,img_predict = flux.read()
+        for i in range(20):
 
-        img_predict = img_predict[50:450, 170:510]
+            _ ,img_predict = flux.read()
 
-        cv2.imwrite('inputimage.jpg', img_predict)
+            img_predict = img_predict[50:450, 170:510]
+
+            path = 'test/'+ 'image' + "_" + str(indice) + ".jpg"
+
+            cv2.imwrite(path,img_predict)
+
+            #cv2.imwrite('inputimage.jpg', img_predict)
+
+            images_test.append([path])
+
+            indice += 1
+
+            pygame.time.wait(150)
+
+        indice = 0
+         
+        
+
+    if key == 0x0d:
 
         flux.release()
 
-        image=['inputimage.jpg']
-            
-        features,labels = extract_features(image,'test')
-        
-        X = features
-        y_pred = clf.predict(X)
+        for image in images_test:
 
-        list_prediction.append(y_pred[0])
+            features,labels = extract_features(image,'test')
+                
+            X = features
+            y_pred = clf.predict(X)
 
-        #cv2.putText(img_predict,str(y_pred[0]),(0,25), font, 1 , (0,0,0), 2, cv2.LINE_AA)
-        
-        #cv2.imshow('Prediction'+str(j), img_predict)
+            list_prediction.append(y_pred[0])
 
-        flux= cv2.VideoCapture(2)
+            #cv2.putText(img_predict,str(y_pred[0]),(0,25), font, 1 , (0,0,0), 2, cv2.LINE_AA)
+                
+            #cv2.imshow('Prediction'+str(j), img_predict)
+                
 
-    if key == 0x0d:
+        flux = cv2.VideoCapture(2)
 
         print(list_prediction)
 
@@ -109,22 +133,25 @@ while (True):
         ring3=0
         ring4=0
         ring5=0
+        ring6=0
+        ring7=0
+        ring8=0
 
         for prediction in list_prediction:
 
-            if prediction =='huawei mate 9':
+            if prediction =='Huawei mate 9':
 
                 ring1=ring1+1
                 
-            if prediction == 'iphone 7 plus':
+            if prediction == 'Iphone 7 plus':
 
                 ring2=ring2+1
 
-            if prediction == 'meizu m3s':
+            if prediction == 'Meizu m3s':
 
                 ring3=ring3+1
                  
-            if prediction == 'samsung galaxy s4':
+            if prediction == 'Samsung galaxy s4':
 
                 ring4=ring4+1
 
@@ -132,15 +159,27 @@ while (True):
 
                 ring5=ring5+1
 
+            if prediction == 'Iphone 5':
+
+                ring6=ring6+1
+
+            if prediction == 'Samsung galaxy s6 edge':
+
+                ring7=ring7+1
+
+            if prediction == 'Huawei p8 lite':
+
+                ring8=ring8+1
+
         last_prediction =''
         
         def final_prediction(ring,produit):
 
              if ring == max(rings):
 
-                 last_prediction = produit
+                 best_prediction = produit
 
-                 print('Final prediction :' + last_prediction )
+                 print('Final prediction :' + best_prediction )
 
                  if sum(rings) !=  0:
 
@@ -148,9 +187,9 @@ while (True):
 
                      print(confidence)
 
-                     if confidence > 50 :
+                     if confidence > 60 :
 
-                         cv2.putText(img_predict,last_prediction,(0,25), font, 1 , (0,0,0), 2, cv2.LINE_AA)
+                         cv2.putText(img_predict,best_prediction,(0,25), font, 1 , (0,0,0), 2, cv2.LINE_AA)
 
                          #cv2.putText(img_predict,str(confidence) + '%' ,(0,380), font, 1 , (0,0,0), 2, cv2.LINE_AA)
                  
@@ -161,15 +200,18 @@ while (True):
                          print('La reconnaissance ne peut aboutir, merci de recommencer !')
 
 
-        rings= [ring1, ring2, ring3, ring4, ring5]
+        rings= [ring1, ring2, ring3, ring4, ring5, ring6, ring7, ring8]
 
         print(rings)
 
-        final_prediction(ring1,'huawei mate 9')
-        final_prediction(ring2,'iphone 7 plus' )
-        final_prediction(ring3,'meizu m3s')
-        final_prediction(ring4,'samsung galaxy s4')
+        final_prediction(ring1,'Huawei mate 9')
+        final_prediction(ring2,'Iphone 7 plus' )
+        final_prediction(ring3,'Meizu m3s')
+        final_prediction(ring4,'Samsung galaxy s4')
         final_prediction(ring5,'Bonjour humain !')
+        final_prediction(ring6,'Iphone 5')
+        final_prediction(ring7,'Samsung galaxy s6 edge')
+        final_prediction(ring8,'Huawei p8 lite')
 
         list_prediction=[]
 

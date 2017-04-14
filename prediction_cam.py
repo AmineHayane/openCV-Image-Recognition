@@ -66,7 +66,9 @@ _ ,img = flux.read()
 
 
 indice = 0
+images_test =[]
 
+utc = time.time()
 
 while (True):
 
@@ -79,8 +81,10 @@ while (True):
 
     _ ,img = flux.read()
 
+    now = time.time()
 
-    if key == ord('s'):
+
+    if key == ord('s') :
 
         images_test =[]
 
@@ -103,10 +107,30 @@ while (True):
             pygame.time.wait(150)
 
         indice = 0
-         
-        
+
+
+    if key == ord('p'): 
+
+        if now - utc > 2 and indice < 10 :
+
+            _ ,img_predict = flux.read()
+
+            img_predict = img_predict[50:450, 170:510]
+
+            path = 'test/'+ 'image' + "_" + str(indice) + ".jpg"
+
+            cv2.imwrite(path,img_predict)
+
+            #cv2.imwrite('inputimage.jpg', img_predict)
+
+            images_test.append([path])
+
+            indice += 1
+  
 
     if key == 0x0d:
+
+        indice=0
 
         flux.release()
 
@@ -173,6 +197,7 @@ while (True):
 
         last_prediction =''
         
+
         def final_prediction(ring,produit):
 
              if ring == max(rings):
@@ -187,7 +212,7 @@ while (True):
 
                      print(confidence)
 
-                     if confidence > 60 :
+                     if confidence > 75 :
 
                          cv2.putText(img_predict,best_prediction,(0,25), font, 1 , (0,0,0), 2, cv2.LINE_AA)
 

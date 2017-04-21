@@ -65,10 +65,11 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 _ ,img = flux.read()
 
 
-indice = 0
+indice = 10
 images_test =[]
 
 utc = time.time()
+
 
 while (True):
 
@@ -83,65 +84,59 @@ while (True):
 
     now = time.time()
 
+    #if key == ord('s'): [Mode manuel]
+    
+    if indice < 10 and now-utc > 0.3 :
 
-    if key == ord('s') :
+        _ ,img_predict = flux.read()
 
-        images_test =[]
+        img_predict = img_predict[50:450, 170:510]
 
-        for i in range(20):
+        path = 'test/'+ 'image' + "_" + str(indice) + ".jpg"
 
-            _ ,img_predict = flux.read()
+        cv2.imwrite(path,img_predict)
 
-            img_predict = img_predict[50:450, 170:510]
+        print("Saving image n°" + str(indice+1) + '...')
 
-            path = 'test/'+ 'image' + "_" + str(indice) + ".jpg"
+        #cv2.imwrite('inputimage.jpg', img_predict)
 
-            cv2.imwrite(path,img_predict)
+        images_test.append([path])
 
-            #cv2.imwrite('inputimage.jpg', img_predict)
+        utc = time.time()
 
-            images_test.append([path])
+        if indice == 9:
 
-            indice += 1
+            print("Finished !")
+        
+        indice += 1
 
-            pygame.time.wait(150)
+        
 
-        indice = 0
+    if key == ord('s'):
 
+        indice=0
+        utc = time.time()
+        
 
-    if key == ord('p'): 
-
-        if now - utc > 2 and indice < 10 :
-
-            _ ,img_predict = flux.read()
-
-            img_predict = img_predict[50:450, 170:510]
-
-            path = 'test/'+ 'image' + "_" + str(indice) + ".jpg"
-
-            cv2.imwrite(path,img_predict)
-
-            #cv2.imwrite('inputimage.jpg', img_predict)
-
-            images_test.append([path])
-
-            indice += 1
-  
 
     if key == 0x0d:
 
-        indice=0
-
         flux.release()
 
+        j=0
+    
         for image in images_test:
 
             features,labels = extract_features(image,'test')
+
+            print('Processing image n°' + str(j+1) + '...')
                 
             X = features
             y_pred = clf.predict(X)
 
             list_prediction.append(y_pred[0])
+
+            j=j+1
 
             #cv2.putText(img_predict,str(y_pred[0]),(0,25), font, 1 , (0,0,0), 2, cv2.LINE_AA)
                 
@@ -149,6 +144,8 @@ while (True):
                 
 
         flux = cv2.VideoCapture(2)
+
+        images_test=[]
 
         print(list_prediction)
 
@@ -160,6 +157,15 @@ while (True):
         ring6=0
         ring7=0
         ring8=0
+        ring9=0
+        ring10=0
+        ring11=0
+        ring12=0
+        ring13=0
+        ring14=0
+        ring15=0
+        ring16=0
+
 
         for prediction in list_prediction:
 
@@ -194,8 +200,39 @@ while (True):
             if prediction == 'Huawei p8 lite':
 
                 ring8=ring8+1
+                
+            if prediction == 'Objet non identifié':
 
-        last_prediction =''
+                ring9=ring9+1
+                
+            if prediction == 'Samsung galaxy s7':
+
+                ring10=ring10+1
+                
+            if prediction == 'Hp elitebook g3':
+
+                ring11=ring11+1
+
+            if prediction == 'Chaise':
+
+                ring12=ring12+1
+
+            if prediction == 'Extincteur':
+
+                ring13=ring13+1
+                
+            if prediction == 'Telephone fixe':
+
+                ring14=ring14+1
+                
+            if prediction == 'Telecommande':
+
+                ring15=ring15+1
+                
+            if prediction == 'Gobelet':
+
+                ring16=ring16+1
+                
         
 
         def final_prediction(ring,produit):
@@ -204,19 +241,20 @@ while (True):
 
                  best_prediction = produit
 
-                 print('Final prediction :' + best_prediction )
 
                  if sum(rings) !=  0:
 
-                     confidence = ring/(sum(rings))*100
+                     confidence = int(ring/(sum(rings))*100)
 
                      print(confidence)
 
-                     if confidence > 75 :
+                     if confidence > 70 :
 
-                         cv2.putText(img_predict,best_prediction,(0,25), font, 1 , (0,0,0), 2, cv2.LINE_AA)
+                         print('Final prediction :' + best_prediction )
 
-                         #cv2.putText(img_predict,str(confidence) + '%' ,(0,380), font, 1 , (0,0,0), 2, cv2.LINE_AA)
+                         cv2.putText(img_predict,best_prediction,(0,25), font, 1 ,(20, 217, 255), 2, cv2.LINE_AA)
+
+                         cv2.putText(img_predict,str(confidence) + '%' ,(0,380), font, 1 , (20,217,255), 2, cv2.LINE_AA)
                  
                          cv2.imshow('Prediction', img_predict)
                          
@@ -225,7 +263,7 @@ while (True):
                          print('La reconnaissance ne peut aboutir, merci de recommencer !')
 
 
-        rings= [ring1, ring2, ring3, ring4, ring5, ring6, ring7, ring8]
+        rings= [ring1, ring2, ring3, ring4, ring5, ring6, ring7, ring8, ring9, ring10, ring11, ring12, ring13, ring14, ring15, ring16]
 
         print(rings)
 
@@ -237,6 +275,14 @@ while (True):
         final_prediction(ring6,'Iphone 5')
         final_prediction(ring7,'Samsung galaxy s6 edge')
         final_prediction(ring8,'Huawei p8 lite')
+        final_prediction(ring9,'Objet non reconnu')
+        final_prediction(ring10,'Samsung galaxy s7')
+        final_prediction(ring11,'Hp elitebook g3')
+        final_prediction(ring12,'Chaise')
+        final_prediction(ring13,'Extincteur')
+        final_prediction(ring14,'Telephone fixe')
+        final_prediction(ring15,'Telecommande')
+        final_prediction(ring16,'Gobelet')
 
         list_prediction=[]
 
